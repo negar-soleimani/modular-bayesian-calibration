@@ -115,67 +115,6 @@ simulate_one_dataset <- function(scenario) {
   return(list(y = y, f_true = f_true, delta_true = delta_true, scenario = scenario))
 }
 
-###############################################################################
-# MODULE P
-###############################################################################
-
-mcmc_module_P <- function(y_P, t_P, n_keep = N_KEEP_PHYS, burn = BURN_PHYS, init = init_phys, verbose = FALSE) {
-  n_P_local <- length(y_P)
-  total_iter <- burn + n_keep
-  X_P <- make_X(t_P)
-  d_free <- 2
-  
-  theta <- init
-  names(theta) <- c("g", "h0", "sigma_sq_err")
-  
-  chain <- matrix(NA_real_, nrow = total_iter, ncol = 3)
-  colnames(chain) <- c("g", "h0", "sigma_sq_err")
-  
-  for (iter in seq_len(total_iter)) {
-    sigma_sq_err <- as.numeric(theta["sigma_sq_err"])
-    
-    A <- t(X_P) %*% X_P
-    B <- t(X_P) %*% matrix(y_P, ncol = 1)
-    A_inv <- safe_solve(A)
-    
-    mu_theta <- A_inv %*% B
-    Sigma_theta <- sigma_sq_err * A_inv
-    
-    theta_sample <- mvtnorm::rmvnorm(1, mean = as.vector(mu_theta), sigma = Sigma_theta)
-    
-    h0 <- as.numeric(theta_sample[1])
-    g <- as.numeric(theta_sample[2])
-    
-    f_P <- balldropg(t_P, c(g, h0))
-    rss_P <- sum((y_P - f_P)^2)
-    
-    shape_lambda <- n_P_local / 2 + d_free / 2
-    rate_lambda <- max(0.5 * rss_P, 1e-14)
-    
-    sigma_sq_err <- invgamma::rinvgamma(1, shape = shape_lambda, rate = rate_lambda)
-    
-    theta <- c(g = g, h0 = h0, sigma_sq_err = sigma_sq_err)
-    
-    if (any(!is.finite(theta))) {
-      stop(paste0("Non-finite Module-P draw at iteration ", iter))
-    }
-    
-    chain[iter, ] <- theta
-    
-    if (verbose && iter %% 5000 == 0) {
-      cat(
-        "Module P:", iter, "/", total_iter,
-        "| g =", round(g, 4),
-        "| h0 =", round(h0, 4),
-        "| lambda2 =", round(sigma_sq_err, 6),
-        "\n"
-      )
-    }
-  }
-  
-  keep <- seq.int(from = burn + 1, to = total_iter)
-  return(chain[keep, , drop = FALSE])
-}
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
