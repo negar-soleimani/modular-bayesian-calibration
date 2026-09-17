@@ -1,3 +1,12 @@
+source("R/00_config.R")
+source("R/01_model_functions.R")
+source("R/02_mcmc_methods.R")
+source("R/03_summaries_plots.R")
+
+###############################################################################
+# RUN ONE SCENARIO
+###############################################################################
+
 run_one_scenario <- function(scenario, scenario_index) {
   
   scenario_number <- as.integer(
@@ -304,7 +313,7 @@ run_one_scenario <- function(scenario, scenario_index) {
         f_true = sim$f_true,
         delta_true = delta_true,
         module = ifelse(
-          seq_len(n) <= m_phys,
+          seq_len(n_total) <= m_phys,
           "P",
           "D"
         )
