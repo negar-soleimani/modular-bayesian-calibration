@@ -1,0 +1,13 @@
+"method","parameter","conventional_split_rhat"
+"Full_unknown_m","theta1",1.00020248585198
+"Full_unknown_m","theta2",1.00042721906833
+"Full_unknown_m","sigma",1.00012100188669
+"Full_unknown_m","m",1.0001660325171
+"Full_fixed_m","theta1",1.00035980024678
+"Full_fixed_m","theta2",1.00073537736941
+"Full_fixed_m","sigma",1.00013401481589
+"Full_fixed_m","m",NA
+"Cut_fixed_m","theta1",0.999943807287001
+"Cut_fixed_m","theta2",0.999957080676647
+"Cut_fixed_m","sigma",0.99989272563307
+"Cut_fixed_m","m",NA
