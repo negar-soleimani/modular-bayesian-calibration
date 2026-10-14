@@ -1,0 +1,9 @@
+"quantity","value"
+"fixed_m",15
+"full_retained_draws_loaded_from_stage1",24000
+"cut_physical_direct_draws",10000
+"cut_outer_draws",300
+"inner_iterations_per_outer_draw",1200
+"inner_burn_per_outer_draw",400
+"proposal_sd_k",0.02
+"proposal_sd_gamma",0.15

@@ -93,7 +93,72 @@ data_stage1 <- read.csv(
 full_fixed_draws <- readRDS(
   full_draw_file
 )
-seed = 2999L
+
+truth <- list(
+  theta = c(g = 9.8, h0 = 46.45),
+  lambda2 = 0.01,
+  m = 15L,
+  delta_g_conf = 1.0
+)
+
+dat <- list(
+  data = data_stage1,
+  y = data_stage1$y,
+  t_raw = data_stage1$t_raw,
+  truth = truth
+)
+
+# Basic checks before the Cut analysis.
+stopifnot(
+  length(dat$y) == nrow(dat$data),
+  truth$m >= 3L,
+  truth$m < length(dat$y)
+)
+
+cat("\nLoaded Stage-1 Scenario B data and Full draws.\n")
+cat("Number of Full retained draws:", nrow(full_fixed_draws), "\n")
+print(truth)
+
+###############################################################################
+## 2. AUDIT MODULE P AT THE FIXED m
+###############################################################################
+
+prep <- prepare_time(dat$t_raw)
+
+module_P_check <- module_P_stats(
+  y = dat$y,
+  t = prep$t,
+  t_min = prep$t_min,
+  t_range = prep$t_range,
+  m = truth$m,
+  prior_type = PRIOR_TYPE
+)
+
+cat("\nModule-P center theta_hat_P:\n")
+print(module_P_check$theta_hat)
+
+cat("\nModule-P S_P:\n")
+print(module_P_check$SSE)
+
+cat("\nModule-P lambda^2 posterior parameters:\n")
+print(
+  c(
+    shape = module_P_check$lambda_shape,
+    rate = module_P_check$lambda_rate
+  )
+)
+
+###############################################################################
+## 3. PRIMARY CUT RESULT: DIRECT DRAWS FOR theta AND lambda^2
+###############################################################################
+
+cut_physical_draws <- run_cut_physical_fixed(
+  y = dat$y,
+  t_raw = dat$t_raw,
+  m = truth$m,
+  n_draws = N_CUT_PHYSICAL,
+  prior_type = PRIOR_TYPE,
+  seed = 2999L
 )
 
 cut_physical_summary <- rbind(
@@ -174,11 +239,91 @@ if (SAVE_PLOTS) {
 cat("\nPrimary physical Full-vs-Cut results saved in:\n")
 cat(normalizePath(RESULT_DIR, mustWork = FALSE), "\n")
 
-cut_joint_draws = cut_joint_draws,
-scenario_label = "Scenario B",
-truth_gp = truth_gp
+###############################################################################
+## 5. SHORT DOWNSTREAM CUT SMOKE TEST
+###############################################################################
+
+cut_smoke <- run_cut_fixed_m(
+  y = dat$y,
+  t_raw = dat$t_raw,
+  m = truth$m,
+  n_outer = 20L,
+  inner_iter = 500L,
+  inner_burn = 150L,
+  proposal_sd_k = PROPOSAL_SD_K,
+  proposal_sd_gamma = PROPOSAL_SD_GAMMA,
+  prior_type = PRIOR_TYPE,
+  seed = 3001L,
+  verbose = TRUE
 )
+
+cat("\nDownstream smoke-test acceptance means:\n")
+print(
+  colMeans(
+    cut_smoke[, c("acc_k", "acc_gamma"), drop = FALSE]
+  )
+)
+
+###############################################################################
+## 6. MAIN JOINT CUT DRAWS INCLUDING k AND gamma_delta
+###############################################################################
+
+cut_joint_draws <- run_cut_fixed_m(
+  y = dat$y,
+  t_raw = dat$t_raw,
+  m = truth$m,
+  n_outer = N_CUT_OUTER,
+  inner_iter = INNER_ITER,
+  inner_burn = INNER_BURN,
+  proposal_sd_k = PROPOSAL_SD_K,
+  proposal_sd_gamma = PROPOSAL_SD_GAMMA,
+  prior_type = PRIOR_TYPE,
+  seed = 3002L,
+  verbose = TRUE
+)
+
+cut_joint_summary <- make_parameter_summary(
+  cut_joint_draws
+)
+
+cat("\nJoint Cut summary:\n")
+print(round(cut_joint_summary, 5))
+
+downstream_acceptance <- data.frame(
+  parameter = c("k", "gamma_delta"),
+  mean_acceptance = c(
+    mean(cut_joint_draws$acc_k),
+    mean(cut_joint_draws$acc_gamma)
+  ),
+  min_acceptance = c(
+    min(cut_joint_draws$acc_k),
+    min(cut_joint_draws$acc_gamma)
+  ),
+  max_acceptance = c(
+    max(cut_joint_draws$acc_k),
+    max(cut_joint_draws$acc_gamma)
+  )
+)
+
+cat("\nCut downstream inner-MH acceptance summary:\n")
+print(round_numeric_columns(downstream_acceptance, digits = 4))
+
+###############################################################################
+## 7. SECONDARY FULL vs CUT COMPARISON FOR k AND gamma_delta
+###############################################################################
+
+# No GP truth exists in Scenario B because the true discrepancy is deterministic.
+truth_gp <- NULL
+
+if (SHOW_PLOTS) {
+  plot_full_cut_gp(
+    full_draws = full_fixed_draws,
+    cut_joint_draws = cut_joint_draws,
+    scenario_label = "Scenario B",
+    truth_gp = truth_gp
+  )
 }
+
 
 ###############################################################################
 ## 8. RECONSTRUCT THE DISCREPANCY UNDER FULL AND CUT
@@ -244,22 +389,48 @@ if (SHOW_PLOTS) {
     scenario_label = "Scenario B"
   )
 }
-"cut_outer_draws",
-"inner_iterations_per_outer_draw",
-"inner_burn_per_outer_draw",
-"proposal_sd_k",
-"proposal_sd_gamma"
-),
-value = c(
-  truth$m,
-  nrow(full_fixed_draws),
-  N_CUT_PHYSICAL,
-  N_CUT_OUTER,
-  INNER_ITER,
-  INNER_BURN,
-  PROPOSAL_SD_K,
-  PROPOSAL_SD_GAMMA
+
+###############################################################################
+## 9. SAVE NUMERICAL OUTPUTS
+###############################################################################
+
+result_dir <- RESULT_DIR
+
+save_stage2_outputs(
+  result_dir = result_dir,
+  full_draws = full_fixed_draws,
+  cut_physical_draws = cut_physical_draws,
+  cut_joint_draws = cut_joint_draws,
+  physical_comparison = physical_comparison,
+  cut_physical_summary = cut_physical_summary,
+  cut_joint_summary = cut_joint_summary,
+  downstream_acceptance = downstream_acceptance,
+  delta_full = delta_full,
+  delta_cut = delta_cut,
+  delta_error = delta_error
 )
+
+settings <- data.frame(
+  quantity = c(
+    "fixed_m",
+    "full_retained_draws_loaded_from_stage1",
+    "cut_physical_direct_draws",
+    "cut_outer_draws",
+    "inner_iterations_per_outer_draw",
+    "inner_burn_per_outer_draw",
+    "proposal_sd_k",
+    "proposal_sd_gamma"
+  ),
+  value = c(
+    truth$m,
+    nrow(full_fixed_draws),
+    N_CUT_PHYSICAL,
+    N_CUT_OUTER,
+    INNER_ITER,
+    INNER_BURN,
+    PROPOSAL_SD_K,
+    PROPOSAL_SD_GAMMA
+  )
 )
 
 write.csv(
