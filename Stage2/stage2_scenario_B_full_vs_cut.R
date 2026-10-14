@@ -468,3 +468,4 @@ cat("The downstream Cut uses", N_CUT_OUTER,
     "outer draws; each outer draw uses an inner MH run of",
     INNER_ITER, "iterations with", INNER_BURN, "burn-in.\n")
 cat("In RStudio, use the Plots pane arrows to browse the displayed figures.\n")
+
