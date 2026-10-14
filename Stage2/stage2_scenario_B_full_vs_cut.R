@@ -1,3 +1,604 @@
+
+Loading older messages…
+
+
+
+
+
+
+
+
+
+
+
+
+
+m
+m
+δ
+D
+
+A
+m
+,
+B
+m
+,
+θ
+^
+  m
+,
+S
+m
+
+
+
+
+
+θ
+λ
+2
+
+k
+,
+γ
+δ
+
+m
+
+t
+i
+
+
+[
+  R
+  γ
+  δ
+]
+i
+j
+=
+  exp
+⁡
+(
+  −
+  ∣
+  t
+  i
+  −
+  t
+  j
+  ∣
+  γ
+  δ
+)
+,
+
+
+
+
+
+
+
+u
+i
+
+
+δ
+
+
+P
+/
+  D
+λ
+2
+
+δ
+C
+D
+
+V
+m
+
+A
+m
+,
+B
+m
+,
+θ
+^
+  m
+,
+S
+m
+
+
+
+
+
+θ
+λ
+2
+
+k
+,
+γ
+δ
+
+
+
+m
+m
+m
+θ
+λ
+2
+
+k
+γ
+δ
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+g
+g
+k
+γ
+δ
+
+k
+γ
+δ
+
+
+
+g
+,
+h
+0
+,
+λ
+2
+
+
+k
+0.2493
+0.10
+
+g
+
+posterior mean
+=
+  8.88642
+,
+g
+⋆
+=
+  9.8
+,
+
+
+−
+0.91358.
+
+8.99052
+9.8
+
+0.90
+k
+0.85
+γ
+δ
+
+R
+
+
+Scenario A: control
+⟶
+Scenario B: confounding
+⟶
+Stage 2: Full vs Cut
+
+
+
+
+
+
+
+
+
+
+m
+(
+  θ
+  ,
+  λ
+  2
+)
+
+Y
+P
+
+Y
+D
+
+
+
+θ
+,
+λ
+2
+
+k
+,
+γ
+δ
+
+m
+
+
+
+
+
+
+
+
+
+
+
+
+Y
+P
+
+A
+P
+,
+B
+P
+,
+S
+P
+
+
+
+
+
+θ
+,
+λ
+2
+
+k
+,
+γ
+δ
+
+
+
+
+k
+,
+γ
+δ
+
+
+
+
+g
+,
+h
+0
+,
+λ
+2
+
+
+
+
+
+
+
+
+g
+9.8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+همان data
++
+  همان Full Stage 1
+vs
+Cut جدید
+.
+
+
+
+
+
+
+
+g
+,
+h
+0
+,
+λ
+2
+
+
+
+
+
+
+
+
+
+m
+
+
+g
+
+g
+⋆
+=
+  9.8
+
+
+
+h
+0
+
+
+λ
+2
+
+0.01
+λ
+2
+
+
+
+Full: more information, more precision
+
+Cut: less information, more uncertainty
+.
+
+
+
+
+9.86
+±
+0.06
+
+9.79
+±
+0.20.
+
+
+
+
+k
+,
+γ
+δ
+
+
+
+(
+  θ
+  ,
+  λ
+  2
+)
+
+
+k
+,
+γ
+δ
+
+
+
+k
+,
+γ
+δ
+
+
+γ
+δ
+
+
+
+k
+,
+γ
+δ
+
+
+10000
+
+
+300
+
+
+k
+,
+γ
+δ
+
+
+k
+
+0.29
+γ
+δ
+
+
+
+N
+o
+u
+t
+e
+r
+=
+  300
+
+
+N
+o
+u
+t
+e
+r
+=
+  1000
+,
+
+
+1200
+/
+  400
+
+2400
+/
+  800.
+
+g
+,
+h
+0
+,
+λ
+2
+
+
+
+
+
+
+
+
+Y
+1
+,
+…
+,
+Y
+15
+
+
+
+g
+
+
+
+
+
+
+g
+
+g
+≈
+8.89
+
+
+g
+⋆
+=
+  9.8.
+
+
+
+9.7
+−
+9.8
+
+
+Full
+=
+  precise but wrong in the stress test
+,
+
+Cut
+=
+  less precise but much closer to physical truth
+.
+
+h
+0
+
+
+46.45
+
+λ
+2
+
+
+
+
+Y
+D
+
+
+
+
+
+
+
+
+
+
+
+g
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ###############################################################################
 # ARTICLE 2 - STAGE 2 - SCENARIO B
 # FIXED-m FULL vs CUT COMPARISON
@@ -10,7 +611,7 @@
 # - It adds the fixed-m Cut analysis and Full-vs-Cut comparison.
 ###############################################################################
 
-source("stage2_core_cut_fixed_m.R")
+source("stage2_core_cut_fixed_m_corrected.R")
 
 SHOW_PLOTS <- TRUE
 SAVE_PLOTS <- TRUE
@@ -25,6 +626,28 @@ INNER_ITER <- 1200L
 INNER_BURN <- 400L
 PROPOSAL_SD_K <- 0.02
 PROPOSAL_SD_GAMMA <- 0.15
+
+# Explicit Stage-2 output directory for this scenario.
+# It is created before the downstream calculation so that the primary
+# physical comparison is saved even if a later secondary calculation stops.
+RESULT_DIR <- file.path(
+  "results",
+  "stage2_scenario_B_full_vs_cut"
+)
+
+FIGURE_DIR <- file.path(
+  RESULT_DIR,
+  "figures"
+)
+
+dir.create(
+  FIGURE_DIR,
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+
+cat("\nStage-2 Scenario B output directory:\n")
+cat(normalizePath(RESULT_DIR, mustWork = FALSE), "\n")
 
 # Scenario B is the confounding stress test.
 # The inference model and priors are unchanged from Scenario A.
@@ -71,72 +694,7 @@ data_stage1 <- read.csv(
 full_fixed_draws <- readRDS(
   full_draw_file
 )
-
-truth <- list(
-  theta = c(g = 9.8, h0 = 46.45),
-  lambda2 = 0.01,
-  m = 15L,
-  delta_g_conf = 1.0
-)
-
-dat <- list(
-  data = data_stage1,
-  y = data_stage1$y,
-  t_raw = data_stage1$t_raw,
-  truth = truth
-)
-
-# Basic checks before the Cut analysis.
-stopifnot(
-  length(dat$y) == nrow(dat$data),
-  truth$m >= 3L,
-  truth$m < length(dat$y)
-)
-
-cat("\nLoaded Stage-1 Scenario B data and Full draws.\n")
-cat("Number of Full retained draws:", nrow(full_fixed_draws), "\n")
-print(truth)
-
-###############################################################################
-## 2. AUDIT MODULE P AT THE FIXED m
-###############################################################################
-
-prep <- prepare_time(dat$t_raw)
-
-module_P_check <- module_P_stats(
-  y = dat$y,
-  t = prep$t,
-  t_min = prep$t_min,
-  t_range = prep$t_range,
-  m = truth$m,
-  prior_type = PRIOR_TYPE
-)
-
-cat("\nModule-P center theta_hat_P:\n")
-print(module_P_check$theta_hat)
-
-cat("\nModule-P S_P:\n")
-print(module_P_check$SSE)
-
-cat("\nModule-P lambda^2 posterior parameters:\n")
-print(
-  c(
-    shape = module_P_check$lambda_shape,
-    rate = module_P_check$lambda_rate
-  )
-)
-
-###############################################################################
-## 3. PRIMARY CUT RESULT: DIRECT DRAWS FOR theta AND lambda^2
-###############################################################################
-
-cut_physical_draws <- run_cut_physical_fixed(
-  y = dat$y,
-  t_raw = dat$t_raw,
-  m = truth$m,
-  n_draws = N_CUT_PHYSICAL,
-  prior_type = PRIOR_TYPE,
-  seed = 2999L
+seed = 2999L
 )
 
 cut_physical_summary <- rbind(
@@ -178,89 +736,49 @@ if (SHOW_PLOTS) {
   )
 }
 
-###############################################################################
-## 5. SHORT DOWNSTREAM CUT SMOKE TEST
-###############################################################################
-
-cut_smoke <- run_cut_fixed_m(
-  y = dat$y,
-  t_raw = dat$t_raw,
-  m = truth$m,
-  n_outer = 20L,
-  inner_iter = 500L,
-  inner_burn = 150L,
-  proposal_sd_k = PROPOSAL_SD_K,
-  proposal_sd_gamma = PROPOSAL_SD_GAMMA,
-  prior_type = PRIOR_TYPE,
-  seed = 3001L,
-  verbose = TRUE
+# Save the PRIMARY Stage-2 physical results immediately.
+# These files remain available even if a later downstream diagnostic stops.
+saveRDS(
+  cut_physical_draws,
+  file.path(RESULT_DIR, "cut_physical_draws.rds")
 )
 
-cat("\nDownstream smoke-test acceptance means:\n")
-print(
-  colMeans(
-    cut_smoke[, c("acc_k", "acc_gamma"), drop = FALSE]
+write.csv(
+  cut_physical_summary,
+  file.path(RESULT_DIR, "cut_physical_summary.csv"),
+  row.names = TRUE
+)
+
+write.csv(
+  physical_comparison,
+  file.path(RESULT_DIR, "full_cut_physical_comparison.csv"),
+  row.names = FALSE
+)
+
+if (SAVE_PLOTS) {
+  save_plot_png(
+    function() plot_full_cut_physical(
+      full_draws = full_fixed_draws,
+      cut_draws = cut_physical_draws,
+      truth = truth,
+      scenario_label = "Scenario B"
+    ),
+    file.path(
+      FIGURE_DIR,
+      "01_full_vs_cut_physical.png"
+    ),
+    width = 1800,
+    height = 700
   )
+}
+
+cat("\nPrimary physical Full-vs-Cut results saved in:\n")
+cat(normalizePath(RESULT_DIR, mustWork = FALSE), "\n")
+
+cut_joint_draws = cut_joint_draws,
+scenario_label = "Scenario B",
+truth_gp = truth_gp
 )
-
-###############################################################################
-## 6. MAIN JOINT CUT DRAWS INCLUDING k AND gamma_delta
-###############################################################################
-
-cut_joint_draws <- run_cut_fixed_m(
-  y = dat$y,
-  t_raw = dat$t_raw,
-  m = truth$m,
-  n_outer = N_CUT_OUTER,
-  inner_iter = INNER_ITER,
-  inner_burn = INNER_BURN,
-  proposal_sd_k = PROPOSAL_SD_K,
-  proposal_sd_gamma = PROPOSAL_SD_GAMMA,
-  prior_type = PRIOR_TYPE,
-  seed = 3002L,
-  verbose = TRUE
-)
-
-cut_joint_summary <- make_parameter_summary(
-  cut_joint_draws
-)
-
-cat("\nJoint Cut summary:\n")
-print(round(cut_joint_summary, 5))
-
-downstream_acceptance <- data.frame(
-  parameter = c("k", "gamma_delta"),
-  mean_acceptance = c(
-    mean(cut_joint_draws$acc_k),
-    mean(cut_joint_draws$acc_gamma)
-  ),
-  min_acceptance = c(
-    min(cut_joint_draws$acc_k),
-    min(cut_joint_draws$acc_gamma)
-  ),
-  max_acceptance = c(
-    max(cut_joint_draws$acc_k),
-    max(cut_joint_draws$acc_gamma)
-  )
-)
-
-cat("\nCut downstream inner-MH acceptance summary:\n")
-print(round(downstream_acceptance, 4))
-
-###############################################################################
-## 7. SECONDARY FULL vs CUT COMPARISON FOR k AND gamma_delta
-###############################################################################
-
-# No GP truth exists in Scenario B because the true discrepancy is deterministic.
-truth_gp <- NULL
-
-if (SHOW_PLOTS) {
-  plot_full_cut_gp(
-    full_draws = full_fixed_draws,
-    cut_joint_draws = cut_joint_draws,
-    scenario_label = "Scenario B",
-    truth_gp = truth_gp
-  )
 }
 
 ###############################################################################
@@ -327,51 +845,22 @@ if (SHOW_PLOTS) {
     scenario_label = "Scenario B"
   )
 }
-
-###############################################################################
-## 9. SAVE NUMERICAL OUTPUTS
-###############################################################################
-
-result_dir <- file.path(
-  "results",
-  "stage2_scenario_B_full_vs_cut"
+"cut_outer_draws",
+"inner_iterations_per_outer_draw",
+"inner_burn_per_outer_draw",
+"proposal_sd_k",
+"proposal_sd_gamma"
+),
+value = c(
+  truth$m,
+  nrow(full_fixed_draws),
+  N_CUT_PHYSICAL,
+  N_CUT_OUTER,
+  INNER_ITER,
+  INNER_BURN,
+  PROPOSAL_SD_K,
+  PROPOSAL_SD_GAMMA
 )
-
-save_stage2_outputs(
-  result_dir = result_dir,
-  full_draws = full_fixed_draws,
-  cut_physical_draws = cut_physical_draws,
-  cut_joint_draws = cut_joint_draws,
-  physical_comparison = physical_comparison,
-  cut_physical_summary = cut_physical_summary,
-  cut_joint_summary = cut_joint_summary,
-  downstream_acceptance = downstream_acceptance,
-  delta_full = delta_full,
-  delta_cut = delta_cut,
-  delta_error = delta_error
-)
-
-settings <- data.frame(
-  quantity = c(
-    "fixed_m",
-    "full_retained_draws_loaded_from_stage1",
-    "cut_physical_direct_draws",
-    "cut_outer_draws",
-    "inner_iterations_per_outer_draw",
-    "inner_burn_per_outer_draw",
-    "proposal_sd_k",
-    "proposal_sd_gamma"
-  ),
-  value = c(
-    truth$m,
-    nrow(full_fixed_draws),
-    N_CUT_PHYSICAL,
-    N_CUT_OUTER,
-    INNER_ITER,
-    INNER_BURN,
-    PROPOSAL_SD_K,
-    PROPOSAL_SD_GAMMA
-  )
 )
 
 write.csv(
@@ -384,10 +873,7 @@ write.csv(
 ## 10. SAVE FIGURES AND SHOW THEM IN R
 ###############################################################################
 
-figure_dir <- file.path(
-  result_dir,
-  "figures"
-)
+figure_dir <- FIGURE_DIR
 
 dir.create(
   figure_dir,
@@ -468,4 +954,3 @@ cat("The downstream Cut uses", N_CUT_OUTER,
     "outer draws; each outer draw uses an inner MH run of",
     INNER_ITER, "iterations with", INNER_BURN, "burn-in.\n")
 cat("In RStudio, use the Plots pane arrows to browse the displayed figures.\n")
-

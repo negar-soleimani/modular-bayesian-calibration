@@ -16,6 +16,24 @@ INNER_BURN <- 400
 PROPOSAL_SD_K <- 0.02
 PROPOSAL_SD_GAMMA <- 0.15
 
+RESULT_DIR <- file.path(
+  "results",
+  "stage2_scenario_A_full_vs_cut"
+)
+
+FIGURE_DIR <- file.path(
+  RESULT_DIR,
+  "figures"
+)
+
+dir.create(
+  FIGURE_DIR,
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+
+cat("\nStage-2 Scenario A output directory:\n")
+cat(normalizePath(RESULT_DIR, mustWork = FALSE), "\n")
 ###############################################################################
 ## 1. LOAD THE EXACT STAGE-1 DATASET AND FULL POSTERIOR DRAWS
 ###############################################################################
@@ -37,6 +55,7 @@ if (!file.exists(data_file) || !file.exists(full_draw_file)) {
     )
   )
 }
+
 
 data_stage1 <- read.csv(data_file, stringsAsFactors = FALSE)
 
@@ -107,7 +126,7 @@ cut_physical_draws <- run_cut_physical_fixed(
   m = truth$m,
   n_draws = N_CUT_PHYSICAL,
   prior_type = PRIOR_TYPE,
-  seed = 1999L
+  seed = 1999
 )
 
 cut_physical_summary <- rbind(
@@ -148,6 +167,45 @@ if (SHOW_PLOTS) {
     scenario_label = "Scenario A"
   )
 }
+
+# Save the PRIMARY Stage-2 physical results immediately.
+# These files remain available even if a later downstream diagnostic stops.
+saveRDS(
+  cut_physical_draws,
+  file.path(RESULT_DIR, "cut_physical_draws.rds")
+)
+
+write.csv(
+  cut_physical_summary,
+  file.path(RESULT_DIR, "cut_physical_summary.csv"),
+  row.names = TRUE
+)
+
+write.csv(
+  physical_comparison,
+  file.path(RESULT_DIR, "full_cut_physical_comparison.csv"),
+  row.names = FALSE
+)
+
+if (SAVE_PLOTS) {
+  save_plot_png(
+    function() plot_full_cut_physical(
+      full_draws = full_fixed_draws,
+      cut_draws = cut_physical_draws,
+      truth = truth,
+      scenario_label = "Scenario A"
+    ),
+    file.path(
+      FIGURE_DIR,
+      "01_full_vs_cut_physical.png"
+    ),
+    width = 1800,
+    height = 700
+  )
+}
+
+cat("\nPrimary physical Full-vs-Cut results saved in:\n")
+cat(normalizePath(RESULT_DIR, mustWork = FALSE), "\n")
 
 ###############################################################################
 ## 5. SHORT DOWNSTREAM CUT SMOKE TEST
@@ -303,10 +361,8 @@ if (SHOW_PLOTS) {
 ## 9. SAVE NUMERICAL OUTPUTS
 ###############################################################################
 
-result_dir <- file.path(
-  "results",
-  "stage2_scenario_A_full_vs_cut"
-)
+# result_dir <- file.path("results", "stage2_scenario_A_full_vs_cut")
+result_dir <- RESULT_DIR
 
 save_stage2_outputs(
   result_dir = result_dir,
@@ -439,3 +495,4 @@ cat("The downstream Cut uses", N_CUT_OUTER,
     "outer draws; each outer draw uses an inner MH run of",
     INNER_ITER, "iterations with", INNER_BURN, "burn-in.\n")
 cat("In RStudio, use the Plots pane arrows to browse the displayed figures.\n")
+

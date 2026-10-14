@@ -242,6 +242,7 @@ update_gamma_downstream <- function(gamma_current, y, t, t_min, t_range, m, thet
   }
 }
 
+
 # A short inner MCMC is run for the CURRENT upstream draw
 # (theta, lambda^2), and one retained state is selected at random.
 # This is the computationally expensive part of the full Cut composition.
@@ -617,6 +618,7 @@ plot_full_cut_gp <- function(
   }
 }
 
+
 # Direct comparison of posterior discrepancy means.
 plot_full_cut_delta_means <- function(
     dat,
@@ -740,6 +742,18 @@ plot_full_cut_delta_intervals <- function(
   abline(v = true_boundary_time, lty = 4)
 }
 
+###############################################################################
+
+# Round only numeric columns of a data frame.
+# This avoids errors when the data frame also contains character columns.
+round_numeric_columns <- function(x, digits = 4L) {
+  out <- x
+  is_num <- vapply(out, is.numeric, logical(1))
+  out[is_num] <- lapply(out[is_num], round, digits = digits)
+  out
+}
+
+###############################################################################
 ###############################################################################
 ## 6. OUTPUT
 ###############################################################################
