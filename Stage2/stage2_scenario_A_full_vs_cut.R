@@ -1,13 +1,5 @@
 ###############################################################################
 # ARTICLE 2 - STAGE 2 - SCENARIO A
-# FIXED-m FULL vs CUT COMPARISON
-#
-# IMPORTANT:
-# - This script uses the SAME simulated dataset and SAME Full posterior draws
-#   already produced in Stage 1.
-# - It does NOT regenerate a different dataset.
-# - It does NOT rerun the Full chain.
-# - It adds the fixed-m Cut analysis and Full-vs-Cut comparison.
 ###############################################################################
 
 source("stage2_core_cut_fixed_m.R")
@@ -15,41 +7,24 @@ source("stage2_core_cut_fixed_m.R")
 SHOW_PLOTS <- TRUE
 SAVE_PLOTS <- TRUE
 
-# Main Stage-2 computational settings.
-N_CUT_PHYSICAL <- 10000L
+N_CUT_PHYSICAL <- 10000
 
-# The physical Cut block above is exact direct sampling.
-# The following settings are only for the downstream GP block.
-N_CUT_OUTER <- 300L
-INNER_ITER <- 1200L
-INNER_BURN <- 400L
+# only for the downstream GP block.
+N_CUT_OUTER <- 300
+INNER_ITER <- 1200
+INNER_BURN <- 400
 PROPOSAL_SD_K <- 0.02
 PROPOSAL_SD_GAMMA <- 0.15
-
-# Scenario A is a well-specified control.
-# Full is allowed to use the post-change observations to update theta/lambda2.
-# Cut intentionally discards that feedback, so Cut can be wider even when the
-# Full model is correctly specified. This is not a failure of Cut; it is the
-# expected cost of modularization when the downstream model is trustworthy.
 
 ###############################################################################
 ## 1. LOAD THE EXACT STAGE-1 DATASET AND FULL POSTERIOR DRAWS
 ###############################################################################
 
-stage1_result_dir <- file.path(
-  "results",
-  "stage1_scenario_A_well_specified_gp"
-)
+stage1_result_dir <- file.path("results", "stage1_scenario_A_well_specified_gp")
 
-data_file <- file.path(
-  stage1_result_dir,
-  "simulated_data.csv"
-)
+data_file <- file.path(stage1_result_dir, "simulated_data.csv")
 
-full_draw_file <- file.path(
-  stage1_result_dir,
-  "pooled_draws.rds"
-)
+full_draw_file <- file.path(stage1_result_dir, "pooled_draws.rds")
 
 if (!file.exists(data_file) || !file.exists(full_draw_file)) {
   stop(
@@ -63,14 +38,9 @@ if (!file.exists(data_file) || !file.exists(full_draw_file)) {
   )
 }
 
-data_stage1 <- read.csv(
-  data_file,
-  stringsAsFactors = FALSE
-)
+data_stage1 <- read.csv(data_file, stringsAsFactors = FALSE)
 
-full_fixed_draws <- readRDS(
-  full_draw_file
-)
+full_fixed_draws <- readRDS(full_draw_file)
 
 truth <- list(
   theta = c(g = 9.8, h0 = 46.45),
@@ -90,7 +60,7 @@ dat <- list(
 # Basic checks before the Cut analysis.
 stopifnot(
   length(dat$y) == nrow(dat$data),
-  truth$m >= 3L,
+  truth$m >= 3,
   truth$m < length(dat$y)
 )
 
@@ -128,7 +98,7 @@ print(
 )
 
 ###############################################################################
-## 3. PRIMARY CUT RESULT: DIRECT DRAWS FOR theta AND lambda^2
+## 3. CUT RESULT: DIRECT DRAWS FOR theta AND lambda^2
 ###############################################################################
 
 cut_physical_draws <- run_cut_physical_fixed(
@@ -187,13 +157,13 @@ cut_smoke <- run_cut_fixed_m(
   y = dat$y,
   t_raw = dat$t_raw,
   m = truth$m,
-  n_outer = 20L,
-  inner_iter = 500L,
-  inner_burn = 150L,
+  n_outer = 20,
+  inner_iter = 500,
+  inner_burn = 150,
   proposal_sd_k = PROPOSAL_SD_K,
   proposal_sd_gamma = PROPOSAL_SD_GAMMA,
   prior_type = PRIOR_TYPE,
-  seed = 2001L,
+  seed = 2001,
   verbose = TRUE
 )
 
@@ -218,13 +188,11 @@ cut_joint_draws <- run_cut_fixed_m(
   proposal_sd_k = PROPOSAL_SD_K,
   proposal_sd_gamma = PROPOSAL_SD_GAMMA,
   prior_type = PRIOR_TYPE,
-  seed = 2002L,
+  seed = 2002,
   verbose = TRUE
 )
 
-cut_joint_summary <- make_parameter_summary(
-  cut_joint_draws
-)
+cut_joint_summary <- make_parameter_summary(cut_joint_draws)
 
 cat("\nJoint Cut summary:\n")
 print(round(cut_joint_summary, 5))
@@ -275,8 +243,8 @@ delta_full <- reconstruct_delta_fixed(
   y = dat$y,
   t_raw = dat$t_raw,
   m = truth$m,
-  n_reconstruct = 300L,
-  seed = 2111L
+  n_reconstruct = 300,
+  seed = 2111
 )
 
 delta_cut <- reconstruct_delta_fixed(
@@ -284,8 +252,8 @@ delta_cut <- reconstruct_delta_fixed(
   y = dat$y,
   t_raw = dat$t_raw,
   m = truth$m,
-  n_reconstruct = min(300L, nrow(cut_joint_draws)),
-  seed = 2222L
+  n_reconstruct = min(300, nrow(cut_joint_draws)),
+  seed = 2222
 )
 
 idx_D <- (truth$m + 1):nrow(dat$data)
