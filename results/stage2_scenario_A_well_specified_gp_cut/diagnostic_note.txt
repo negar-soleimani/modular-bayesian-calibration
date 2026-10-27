@@ -1,6 +1,0 @@
-Important diagnostic note:
- Module-P R-hat/ESS are ordinary diagnostics for the upstream Gibbs chains.
- The paired Cut R-hat/ESS for k and gamma_delta are descriptive because
- each downstream value comes from a finite inner conditional MH chain with
- a target that changes with the upstream draw. Final analyses should also
- check sensitivity to inner_iter, inner_burn, and proposal scales.
