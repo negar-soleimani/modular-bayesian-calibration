@@ -1,0 +1,10 @@
+"quantity","value"
+"theta_hat_m_g",9.84966452858289
+"theta_hat_m_h0",46.4860789498268
+"rank_A_m",2
+"lambda_shape",23.5
+"Q_m_at_theta_hat_m",0.357900887017361
+"lambda_rate_at_theta_hat_m",0.17895044350868
+"Q_m_at_true_theta",0.373835090731636
+"lambda_rate_at_true_theta",0.186917545365818
+"first_C_D_diagonal",11

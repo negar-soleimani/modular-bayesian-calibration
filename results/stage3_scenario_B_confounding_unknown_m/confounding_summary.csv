@@ -1,0 +1,10 @@
+"quantity","value"
+"posterior_mean_g",8.87760071845893
+"true_g",9.8
+"mean_error_g",-0.922399281541075
+"posterior_mean_h0",46.4013011262445
+"true_h0",46.45
+"mean_error_h0",-0.0486988737554697
+"posterior_mean_m",0
+"MAP_m",NA
+"true_m",15

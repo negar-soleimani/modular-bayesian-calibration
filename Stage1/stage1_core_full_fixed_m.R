@@ -68,9 +68,7 @@ safe_logdet <- function(M, jitter = 1e-10) {
   as.numeric(out$modulus)
 }
 
-# GP covariance.
-# IMPORTANT: in the current implementation the input t supplied here is the
-# normalized time u in [0,1], not the physical time in seconds.
+
 GP_covariance <- function(t, sigma_sq_delta, gamma_delta) {
   outer(t, t, function(ti, tj)
     sigma_sq_delta * exp(-abs(ti - tj) / gamma_delta)

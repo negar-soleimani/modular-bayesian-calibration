@@ -1,0 +1,11 @@
+"quantity","value"
+"reference_k_not_truth",0.1
+"reference_gamma_not_truth",0.3
+"theta_hat_m_g",8.99022645286456
+"theta_hat_m_h0",46.3742791046059
+"rank_A_m",2
+"lambda_shape",23.5
+"Q_m_at_theta_hat_m",0.408408584908974
+"lambda_rate_at_theta_hat_m",0.204204292454487
+"Q_m_at_true_theta",1.4777000468582
+"lambda_rate_at_true_theta",0.738850023429102
