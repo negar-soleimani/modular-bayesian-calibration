@@ -138,14 +138,14 @@ log_downstream_target <- function(Y_D, X_D, u_D, theta, lambda2, k, gamma_delta)
     return(-Inf)
   }
   r_D <- Y_D - as.vector(X_D %*% as.numeric(theta))
-  q_D <- as.numeric(crossprod(r_D, C_D_inv %*% r_D)) 
+  quadratic_D <- as.numeric(crossprod(r_D, C_D_inv %*% r_D)) 
   if (!is.finite(quadratic_D) || quadratic_D < 0) {
     return(-Inf)
   }
   
   log_target <-
     -0.5 * logdet_C_D -
-    q_D / (2 * lambda2)
+    quadratic_D / (2 * lambda2)
   
   as.numeric(log_target)
 }
