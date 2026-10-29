@@ -1,9 +1,8 @@
 ###############################################################################
-# STAGE 2 CORE
+# STAGE 2 main
 # CUT BAYESIAN CALIBRATION WITH A FIXED, KNOWN CHANGE POINT
 #
-#   pi_cut^m(phi,eta | Y)
-#     = pi_P(phi | Y_P,m) * pi_D(eta | Y_D,phi,m),
+#   pi_cut^m(phi,eta | Y) = pi_P(phi | Y_P,m) * pi_D(eta | Y_D,phi,m),
 #
 #   phi = (theta,lambda2)
 #   eta = (k,gamma_delta).
@@ -65,10 +64,7 @@ prepare_time <- function(t_raw) {
 
 
 make_X <- function(t_raw) {
-  cbind(
-    g = -0.5 * t_raw^2,
-    h0 = 1
-  )
+  cbind(g = -0.5 * t_raw^2, h0 = 1)
 }
 
 
@@ -86,7 +82,7 @@ GP_correlation <- function(u, gamma_delta) {
 
 GP_covariance <- function(u, sigma_sq_delta, gamma_delta) {
   sigma_sq_delta * GP_correlation(u = u, gamma_delta = gamma_delta)
-  }
+}
 
 
 make_C_D <- function(u_D, k, gamma_delta) {
@@ -117,9 +113,7 @@ log_q_tnorm_rw <- function(y, x, sd, lower, upper) {
 
 # Downstream conditional log target for fixed theta and lambda2:
 #
-# ell_D(k,gamma_delta)
-#   = -0.5 log|C_D|
-#     - r_D' C_D^{-1} r_D / (2 lambda2)
+# ell_D(k,gamma_delta) = -0.5 log|C_D| - r_D' C_D^{-1} r_D / (2 lambda2)
 log_downstream_target <- function(Y_D, X_D, u_D, theta, lambda2, k, gamma_delta) {
   if (!is.finite(lambda2) || lambda2 <= 0) {
     return(-Inf)
@@ -143,9 +137,7 @@ log_downstream_target <- function(Y_D, X_D, u_D, theta, lambda2, k, gamma_delta)
     return(-Inf)
   }
   
-  log_target <-
-    -0.5 * logdet_C_D -
-    quadratic_D / (2 * lambda2)
+  log_target <- -0.5 * logdet_C_D - quadratic_D / (2 * lambda2)
   
   as.numeric(log_target)
 }
@@ -168,13 +160,13 @@ run_cut_fixed_chain <- function(y, t_raw, m, outer_iter = 1400, outer_burn = 400
   if (length(t_raw) != n) {
     stop("y and t_raw must have the same length.")
   }
-  if (m < d + 1L || m >= n) {
+  if (m < d + 1 || m >= n) {
     stop("m must leave a full-rank physical prefix and downstream observations.")
   }
   if (outer_burn >= outer_iter) {
     stop("outer_burn must be smaller than outer_iter.")
   }
-  if (outer_thin < 1L) {
+  if (outer_thin < 1) {
     stop("outer_thin must be at least 1.")
   }
   if (inner_burn >= inner_iter) {
@@ -264,9 +256,7 @@ run_cut_fixed_chain <- function(y, t_raw, m, outer_iter = 1400, outer_burn = 400
     
     #########################################################################
     ## MODULE P - theta
-    ##
-    ## theta | lambda2,Y_P,m
-    ##   ~ N(theta_hat_P, lambda2 A_P^{-1})
+    ## theta | lambda2,Y_P,m ~ N(theta_hat_P, lambda2 A_P^{-1})
     #########################################################################
     
     theta <- as.vector(rmvnorm(n = 1, mean = theta_hat_P, sigma = lambda2 * A_P_inv))
@@ -277,8 +267,7 @@ run_cut_fixed_chain <- function(y, t_raw, m, outer_iter = 1400, outer_burn = 400
     ##
     ## Q_P(theta) = (Y_P-X_P theta)'(Y_P-X_P theta)
     ##
-    ## lambda2 | theta,Y_P,m
-    ##   ~ IG((m+d)/2, Q_P(theta)/2)
+    ## lambda2 | theta,Y_P,m ~ IG((m+d)/2, Q_P(theta)/2)
     #########################################################################
     
     r_P <- Y_P - as.vector(X_P %*% theta)
@@ -542,14 +531,7 @@ combine_cut_chains <- function(chains) {
 
 # Rhat and ESS are evaluated on Module P because Module P is the actual
 # outer MCMC chain whose marginal must remain pi_P(phi | Y_P,m).
-module_P_diagnostics <- function(
-    chains,
-    parameters = c(
-      "g",
-      "h0",
-      "lambda2"
-    )
-) {
+module_P_diagnostics <- function(chains, parameters = c("g", "h0", "lambda2")) {
   mlist <- mcmc.list(
     lapply(
       chains,
@@ -561,12 +543,7 @@ module_P_diagnostics <- function(
     )
   )
   
-  rhat <-
-    gelman.diag(
-      mlist,
-      autoburnin = FALSE,
-      multivariate = FALSE
-    )$psrf[, 1]
+  rhat <- gelman.diag(mlist, autoburnin = FALSE, multivariate = FALSE)$psrf[, 1]
   
   ess <- effectiveSize(mlist)
   
@@ -582,7 +559,6 @@ module_P_diagnostics <- function(
 inner_acceptance_summary <- function(chains) {
   data.frame(
     chain = seq_along(chains),
-    
     k = vapply(
       chains,
       function(z) {
@@ -590,7 +566,6 @@ inner_acceptance_summary <- function(chains) {
       },
       numeric(1)
     ),
-    
     gamma_delta = vapply(
       chains,
       function(z) {
@@ -603,7 +578,7 @@ inner_acceptance_summary <- function(chains) {
 
 
 ###############################################################################
-## 4. SIMPLE PLOTTING HELPERS
+## 4. PLOT HELPERS
 ###############################################################################
 
 plot_simulated_data <- function(dat,main = "Simulated data") {

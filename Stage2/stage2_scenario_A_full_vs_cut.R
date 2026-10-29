@@ -8,12 +8,12 @@ SHOW_PLOTS <- TRUE
 SAVE_PLOTS <- TRUE
 N_CHAINS <- 4
 
-# Outer Module-P Gibbs chain.
+# Outer Module-P
 OUTER_ITER <- 1400
 OUTER_BURN <- 400
 OUTER_THIN <- 5
 
-# Fresh conditional Module-D chain for every retained upstream draw.
+# Module-D chain for every retained Module-P.
 INNER_ITER <- 600
 INNER_BURN <- 200
 PROPOSAL_SD_K <- 0.02
@@ -32,16 +32,8 @@ dir.create(FIGURE_DIR, recursive = TRUE, showWarnings = FALSE)
 ## 1. DATA GENERATOR
 ###############################################################################
 
-generate_well_specified_gp_data <- function(
-    n = 45,
-    t_max = 2.77,
-    theta_true = c(g = 9.8, h0 = 46.45),
-    lambda2_true = 0.01,
-    m_true = 15,
-    k_true = 0.10,
-    gamma_true = 0.30,
-    seed = 123L
-) {
+generate_well_specified_gp_data <- function(n = 45, t_max = 2.77, theta_true = c(g = 9.8, h0 = 46.45),
+                                   lambda2_true = 0.01, m_true = 15, k_true = 0.1, gamma_true = 0.3, seed = 123) {
   set.seed(seed)
   
   t_raw <- seq(0, t_max, length.out = n)
@@ -49,17 +41,11 @@ generate_well_specified_gp_data <- function(
   physical_true <- ball_drop_mean(t_raw, theta_true)
   
   delta_true <- rep(0, n)
-  idx_D <- seq.int(m_true + 1L, n)
-  Sigma_delta <- GP_covariance(
-    prep$u[idx_D],
-    sigma_sq_delta = lambda2_true / k_true,
-    gamma_delta = gamma_true
-  )
-  delta_true[idx_D] <- as.vector(
-    rmvnorm(1, mean = rep(0, length(idx_D)), sigma = Sigma_delta)
-  )
-  
+  idx_D <- seq.int(m_true + 1, n)
+  Sigma_delta <- GP_covariance(prep$u[idx_D], sigma_sq_delta = lambda2_true / k_true, gamma_delta = gamma_true)
+  delta_true[idx_D] <- as.vector(rmvnorm(1, mean = rep(0, length(idx_D)), sigma = Sigma_delta))
   epsilon_true <- rnorm(n, sd = sqrt(lambda2_true))
+  
   y <- physical_true + delta_true + epsilon_true
   
   data <- data.frame(
@@ -101,7 +87,7 @@ if (SHOW_PLOTS) {
 }
 
 ###############################################################################
-## 3. RUN FOUR INDEPENDENT TWO-LEVEL CUT CHAINS
+## 3. CUT CHAINS
 ###############################################################################
 
 chains <- vector("list", N_CHAINS)
@@ -131,7 +117,7 @@ summary_table <- parameter_summary(pooled_draws)
 upstream_diagnostics <- module_P_diagnostics(chains)
 inner_acceptance <- inner_acceptance_summary(chains)
 
-print(round(summary_table, 5))
+print(summary_table)
 print(upstream_diagnostics)
 print(inner_acceptance)
 
@@ -140,8 +126,6 @@ write.csv(summary_table, file.path(RESULT_DIR, "cut_posterior_summary.csv"))
 write.csv(upstream_diagnostics, file.path(RESULT_DIR, "module_P_diagnostics.csv"), row.names = FALSE)
 write.csv(inner_acceptance, file.path(RESULT_DIR, "module_D_acceptance.csv"), row.names = FALSE)
 
-###############################################################################
-## 4. PARAMETER RECOVERY
 ###############################################################################
 
 truth <- c(
@@ -166,7 +150,7 @@ print(recovery)
 write.csv(recovery, file.path(RESULT_DIR, "parameter_recovery.csv"), row.names = FALSE)
 
 ###############################################################################
-## 5. PLOTS
+## 4. PLOTS
 ###############################################################################
 
 plot_parameter <- function(x, truth, xlab, main) {

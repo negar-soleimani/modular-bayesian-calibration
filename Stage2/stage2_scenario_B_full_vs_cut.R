@@ -1,13 +1,6 @@
 ###############################################################################
-# ARTICLE 2 - STAGE 2 - SCENARIO B
+# STAGE 2 - SCENARIO B
 # FIXED-m FULL vs CUT COMPARISON
-#
-# IMPORTANT:
-# - This script uses the SAME simulated dataset and SAME Full posterior draws
-#   already produced in Stage 1.
-# - It does NOT regenerate a different dataset.
-# - It does NOT rerun the Full chain.
-# - It adds the fixed-m Cut analysis and Full-vs-Cut comparison.
 ###############################################################################
 
 source("stage2_core_cut_fixed_m_corrected.R")
@@ -16,62 +9,34 @@ SHOW_PLOTS <- TRUE
 SAVE_PLOTS <- TRUE
 
 # Main Stage-2 computational settings.
-N_CUT_PHYSICAL <- 10000L
+N_CUT_PHYSICAL <- 10000
 
 # The physical Cut block above is exact direct sampling.
 # The following settings are only for the downstream GP block.
-N_CUT_OUTER <- 300L
-INNER_ITER <- 1200L
-INNER_BURN <- 400L
+N_CUT_OUTER <- 300
+INNER_ITER <- 1200
+INNER_BURN <- 400
 PROPOSAL_SD_K <- 0.02
 PROPOSAL_SD_GAMMA <- 0.15
 
-# Explicit Stage-2 output directory for this scenario.
-# It is created before the downstream calculation so that the primary
-# physical comparison is saved even if a later secondary calculation stops.
-RESULT_DIR <- file.path(
-  "results",
-  "stage2_scenario_B_full_vs_cut"
-)
+RESULT_DIR <- file.path("results", "stage2_scenario_B_full_vs_cut")
 
-FIGURE_DIR <- file.path(
-  RESULT_DIR,
-  "figures"
-)
+FIGURE_DIR <- file.path(RESULT_DIR, "figures")
 
-dir.create(
-  FIGURE_DIR,
-  recursive = TRUE,
-  showWarnings = FALSE
-)
+dir.create(FIGURE_DIR, recursive = TRUE, showWarnings = FALSE)
 
 cat("\nStage-2 Scenario B output directory:\n")
 cat(normalizePath(RESULT_DIR, mustWork = FALSE), "\n")
 
-# Scenario B is the confounding stress test.
-# The inference model and priors are unchanged from Scenario A.
-# Only the DGP discrepancy is changed.
-# This is the central fixed-m experiment for showing the effect of cutting
-# downstream feedback on the physical calibration parameters.
-
 ###############################################################################
-## 1. LOAD THE EXACT STAGE-1 DATASET AND FULL POSTERIOR DRAWS
+## 1. DATASET AND FULL POSTERIOR DRAWS
 ###############################################################################
 
-stage1_result_dir <- file.path(
-  "results",
-  "stage1_scenario_B_confounding"
-)
+stage1_result_dir <- file.path("results", "stage1_scenario_B_confounding")
 
-data_file <- file.path(
-  stage1_result_dir,
-  "simulated_data.csv"
-)
+data_file <- file.path(stage1_result_dir, "simulated_data.csv")
 
-full_draw_file <- file.path(
-  stage1_result_dir,
-  "pooled_draws.rds"
-)
+full_draw_file <- file.path(stage1_result_dir, "pooled_draws.rds")
 
 if (!file.exists(data_file) || !file.exists(full_draw_file)) {
   stop(
@@ -85,20 +50,15 @@ if (!file.exists(data_file) || !file.exists(full_draw_file)) {
   )
 }
 
-data_stage1 <- read.csv(
-  data_file,
-  stringsAsFactors = FALSE
-)
+data_stage1 <- read.csv(data_file, stringsAsFactors = FALSE)
 
-full_fixed_draws <- readRDS(
-  full_draw_file
-)
+full_fixed_draws <- readRDS(full_draw_file)
 
 truth <- list(
   theta = c(g = 9.8, h0 = 46.45),
   lambda2 = 0.01,
-  m = 15L,
-  delta_g_conf = 1.0
+  m = 15,
+  delta_g_conf = 1
 )
 
 dat <- list(
@@ -111,7 +71,7 @@ dat <- list(
 # Basic checks before the Cut analysis.
 stopifnot(
   length(dat$y) == nrow(dat$data),
-  truth$m >= 3L,
+  truth$m >= 3,
   truth$m < length(dat$y)
 )
 
@@ -125,14 +85,8 @@ print(truth)
 
 prep <- prepare_time(dat$t_raw)
 
-module_P_check <- module_P_stats(
-  y = dat$y,
-  t = prep$t,
-  t_min = prep$t_min,
-  t_range = prep$t_range,
-  m = truth$m,
-  prior_type = PRIOR_TYPE
-)
+module_P_check <- module_P_stats(y = dat$y, t = prep$t, t_min = prep$t_min,
+               t_range = prep$t_range, m = truth$m, prior_type = PRIOR_TYPE)
 
 cat("\nModule-P center theta_hat_P:\n")
 print(module_P_check$theta_hat)
@@ -152,13 +106,11 @@ print(
 ## 3. PRIMARY CUT RESULT: DIRECT DRAWS FOR theta AND lambda^2
 ###############################################################################
 
-cut_physical_draws <- run_cut_physical_fixed(
-  y = dat$y,
-  t_raw = dat$t_raw,
-  m = truth$m,
+cut_physical_draws <- run_cut_physical_fixed(y = dat$y,
+  t_raw = dat$t_raw, m = truth$m,
   n_draws = N_CUT_PHYSICAL,
   prior_type = PRIOR_TYPE,
-  seed = 2999L
+  seed = 2999
 )
 
 cut_physical_summary <- rbind(
@@ -200,24 +152,9 @@ if (SHOW_PLOTS) {
   )
 }
 
-# Save the PRIMARY Stage-2 physical results immediately.
-# These files remain available even if a later downstream diagnostic stops.
-saveRDS(
-  cut_physical_draws,
-  file.path(RESULT_DIR, "cut_physical_draws.rds")
-)
-
-write.csv(
-  cut_physical_summary,
-  file.path(RESULT_DIR, "cut_physical_summary.csv"),
-  row.names = TRUE
-)
-
-write.csv(
-  physical_comparison,
-  file.path(RESULT_DIR, "full_cut_physical_comparison.csv"),
-  row.names = FALSE
-)
+saveRDS(cut_physical_draws, file.path(RESULT_DIR, "cut_physical_draws.rds"))
+write.csv(cut_physical_summary, file.path(RESULT_DIR, "cut_physical_summary.csv"), row.names = TRUE)
+write.csv(physical_comparison, file.path(RESULT_DIR, "full_cut_physical_comparison.csv"), row.names = FALSE)
 
 if (SAVE_PLOTS) {
   save_plot_png(
@@ -247,13 +184,13 @@ cut_smoke <- run_cut_fixed_m(
   y = dat$y,
   t_raw = dat$t_raw,
   m = truth$m,
-  n_outer = 20L,
-  inner_iter = 500L,
-  inner_burn = 150L,
+  n_outer = 20,
+  inner_iter = 500,
+  inner_burn = 150,
   proposal_sd_k = PROPOSAL_SD_K,
   proposal_sd_gamma = PROPOSAL_SD_GAMMA,
   prior_type = PRIOR_TYPE,
-  seed = 3001L,
+  seed = 3001,
   verbose = TRUE
 )
 
@@ -265,7 +202,7 @@ print(
 )
 
 ###############################################################################
-## 6. MAIN JOINT CUT DRAWS INCLUDING k AND gamma_delta
+## 6. k AND gamma_delta
 ###############################################################################
 
 cut_joint_draws <- run_cut_fixed_m(
@@ -278,7 +215,7 @@ cut_joint_draws <- run_cut_fixed_m(
   proposal_sd_k = PROPOSAL_SD_K,
   proposal_sd_gamma = PROPOSAL_SD_GAMMA,
   prior_type = PRIOR_TYPE,
-  seed = 3002L,
+  seed = 3002,
   verbose = TRUE
 )
 
@@ -334,8 +271,8 @@ delta_full <- reconstruct_delta_fixed(
   y = dat$y,
   t_raw = dat$t_raw,
   m = truth$m,
-  n_reconstruct = 300L,
-  seed = 3111L
+  n_reconstruct = 300,
+  seed = 3111
 )
 
 delta_cut <- reconstruct_delta_fixed(
@@ -343,28 +280,15 @@ delta_cut <- reconstruct_delta_fixed(
   y = dat$y,
   t_raw = dat$t_raw,
   m = truth$m,
-  n_reconstruct = min(300L, nrow(cut_joint_draws)),
-  seed = 3222L
+  n_reconstruct = min(300, nrow(cut_joint_draws)),
+  seed = 3222
 )
 
 idx_D <- (truth$m + 1):nrow(dat$data)
+full_delta_ISE <- mean((delta_full$mean[idx_D] - dat$data$delta_true[idx_D])^2)
+cut_delta_ISE <- mean((delta_cut$mean[idx_D] - dat$data$delta_true[idx_D])^2)
 
-full_delta_ISE <- mean(
-  (
-    delta_full$mean[idx_D] -
-      dat$data$delta_true[idx_D]
-  )^2
-)
-
-cut_delta_ISE <- mean(
-  (
-    delta_cut$mean[idx_D] -
-      dat$data$delta_true[idx_D]
-  )^2
-)
-
-delta_error <- data.frame(
-  method = c("Full", "Cut"),
+delta_error <- data.frame(method = c("Full", "Cut"),
   downstream_mean_squared_error = c(
     full_delta_ISE,
     cut_delta_ISE
@@ -391,7 +315,7 @@ if (SHOW_PLOTS) {
 }
 
 ###############################################################################
-## 9. SAVE NUMERICAL OUTPUTS
+## 9. SAVE
 ###############################################################################
 
 result_dir <- RESULT_DIR
@@ -440,16 +364,10 @@ write.csv(
 )
 
 ###############################################################################
-## 10. SAVE FIGURES AND SHOW THEM IN R
-###############################################################################
 
 figure_dir <- FIGURE_DIR
 
-dir.create(
-  figure_dir,
-  recursive = TRUE,
-  showWarnings = FALSE
-)
+dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
 
 if (SAVE_PLOTS) {
   save_plot_png(
@@ -513,14 +431,3 @@ if (SAVE_PLOTS) {
   )
 }
 
-cat("\n============================================================\n")
-cat("STAGE 2 - SCENARIO B COMPLETE\n")
-cat("============================================================\n")
-cat("Results directory:\n", normalizePath(result_dir), "\n")
-cat("Figures directory:\n", normalizePath(figure_dir), "\n")
-cat("\nThe MAIN Stage-2 physical comparison uses", N_CUT_PHYSICAL,
-    "direct Cut draws.\n")
-cat("The downstream Cut uses", N_CUT_OUTER,
-    "outer draws; each outer draw uses an inner MH run of",
-    INNER_ITER, "iterations with", INNER_BURN, "burn-in.\n")
-cat("In RStudio, use the Plots pane arrows to browse the displayed figures.\n")
